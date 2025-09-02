@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Django
+staticfiles/
+media/
+
+# Env
+.env
+
+# VSCode
+.vscode/
+
+# Docker
+*.pid
