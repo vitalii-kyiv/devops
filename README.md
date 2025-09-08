@@ -2,32 +2,6 @@ Kubernetes EKS Infrastructure - Lesson 7
 
 This project demonstrates the creation of an EKS Kubernetes cluster with the deployment of a Django application via Helm.
 
-Project Structure
-lesson-7/
-│
-├── main.tf # Main file for module integration
-├── backend.tf # Backend configuration (S3 + DynamoDB)
-├── outputs.tf # Outputs for resources
-│
-├── modules/ # All infrastructure modules
-│ ├── s3-backend/ # S3 and DynamoDB module
-│ ├── vpc/ # VPC module
-│ ├── ecr/ # ECR module
-│ └── eks/ # EKS cluster module
-│
-├── charts/ # Helm charts
-│ └── django-app/ # Django application chart
-│ ├── templates/ # Kubernetes manifests
-│ ├── Chart.yaml # Helm chart metadata
-│ └── values.yaml # Application configuration
-│
-├── scripts/ # Deployment scripts
-│ ├── push-to-ecr.sh # Push Docker image to ECR
-│ ├── configure-kubectl.sh # Configure kubectl
-│ └── deploy-helm.sh # Deploy Helm chart
-│
-└── README.md # Project documentation
-
 Infrastructure Components
 
 1. S3 Backend Module
