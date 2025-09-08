@@ -1,0 +1,76 @@
+# Default values for django-app
+replicaCount: 2
+
+image:
+  repository: 682296103768.ecr.us-west-2.amazonaws.com/lesson-7-django-app
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8000
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Environment variables from ConfigMap
+env:
+  DEBUG: "True"
+  SECRET_KEY: "your-secret-key-here"
+  DJANGO_ALLOWED_HOSTS: "localhost 127.0.0.1 [::1]"
+  DB_ENGINE: "django.db.backends.postgresql"
+  DB_NAME: "django_db"
+  DB_USER: "django_user"
+  DB_PASSWORD: "django_password"
+  DB_HOST: "db"
+  DB_PORT: "5432"
+
+# Container configuration
+container:
+  port: 8000
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 5

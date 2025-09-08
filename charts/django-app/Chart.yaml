@@ -1,0 +1,16 @@
+apiVersion: v2
+name: django-app
+description: A Helm chart for Django application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - django
+  - python
+  - web
+home: https://github.com/vitalii-kyiv/devops/tree/lesson-7
+sources:
+  - https://github.com/vitalii-kyiv/devops/tree/lesson-7
+maintainers:
+  - name: vitalii-kyiv
+    email: vitalii-kyiv@example.com
