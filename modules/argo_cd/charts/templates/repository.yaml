@@ -1,0 +1,17 @@
+{{- if .Values.repositories }}
+apiVersion: v1
+kind: List
+items:
+{{- range .Values.repositories }}
+- apiVersion: argoproj.io/v1alpha1
+  kind: Repository
+  metadata:
+    name: {{ .name }}
+    labels:
+      app.kubernetes.io/managed-by: Helm
+  spec:
+    url: {{ .url | quote }}
+    type: {{ .type | default "git" | quote }}
+{{- end }}
+{{- end }}
+

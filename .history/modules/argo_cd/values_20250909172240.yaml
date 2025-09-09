@@ -1,0 +1,13 @@
+global:
+  domain: ""
+
+configs:
+  params:
+    server.insecure: true
+  secret:
+    argocdServerAdminPassword: ""
+
+server:
+  service:
+    type: LoadBalancer
+

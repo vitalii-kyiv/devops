@@ -1,0 +1,64 @@
+controller:
+  adminUser: "admin"
+  adminPassword: "admin"
+  installPlugins:
+    - kubernetes:4288.v396a_31f019fa_
+    - workflow-aggregator:596.v8c21c963d92d
+    - git:5.2.1
+    - configuration-as-code:1775.v810dc950b_514
+    - credentials-binding:677.vdc9d38cb_2574
+    - cloudbees-folder:6.903.vb_4c7a_da_75a_50
+    - matrix-auth:3.2.1
+    - antisamy-markup-formatter:162.v0e6ec0fcfcf6
+    - blueocean:1.27.10
+  jenkinsUrlProtocol: http
+  serviceType: LoadBalancer
+  JCasC:
+    defaultConfig: true
+    configScripts:
+      credentials: |
+        jenkins:
+          credentials:
+            system:
+              domainCredentials:
+                - credentials:
+                    - usernamePassword:
+                        scope: GLOBAL
+                        id: "git-creds"
+                        username: ""
+                        password: ""
+                        description: "Git credentials"
+      agents: |
+        jenkins:
+          clouds:
+            - kubernetes:
+                name: "kubernetes"
+                templates:
+                  - name: "kaniko"
+                    label: "kaniko"
+                    namespace: "jenkins"
+                    serviceAccount: "default"
+                    containers:
+                      - name: "jnlp"
+                        image: "jenkins/inbound-agent:latest"
+                        args: "${computer.jnlpmac} ${computer.name}"
+                      - name: "kaniko"
+                        image: "gcr.io/kaniko-project/executor:latest"
+                        command:
+                          - "/busybox/cat"
+                        ttyEnabled: true
+                        volumeMounts:
+                          - mountPath: /kaniko/.docker
+                            name: docker-config
+                    volumes:
+                      - name: docker-config
+                        secret:
+                          secretName: ecr-docker-config
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+

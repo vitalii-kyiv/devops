@@ -1,0 +1,30 @@
+{{- if .Values.applications }}
+apiVersion: v1
+kind: List
+items:
+{{- range .Values.applications }}
+- apiVersion: argoproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: {{ .name }}
+    labels:
+      app.kubernetes.io/managed-by: Helm
+  spec:
+    project: {{ .project | default "default" | quote }}
+    source:
+      repoURL: {{ .repo | quote }}
+      path: {{ .path | quote }}
+      targetRevision: {{ .target_rev | default "main" | quote }}
+      helm:
+        values: |
+{{ toYaml .values | indent 10 }}
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: {{ .namespace | quote }}
+    syncPolicy:
+      automated:
+        prune: {{ .sync_policy.prune | default true }}
+        selfHeal: {{ .sync_policy.selfHeal | default true }}
+{{- end }}
+{{- end }}
+
