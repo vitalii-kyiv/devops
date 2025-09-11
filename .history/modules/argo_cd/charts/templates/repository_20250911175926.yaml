@@ -1,0 +1,11 @@
+{{- range .Values.repositories }}
+apiVersion: argoproj.io/v1alpha1
+kind: Repository
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  url: {{ .url }}
+---
+{{- end }}
+
