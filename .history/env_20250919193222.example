@@ -1,0 +1,27 @@
+# AWS Configuration
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=AKIAFAKECHERNOUS
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS_SESSION_TOKEN=FAKE_SESSION_TOKEN
+
+# Project Configuration
+PROJECT_PREFIX=chernous_fp_devops
+
+# Database Configuration
+DB_USERNAME=dbadmin
+DB_PASSWORD=DevOps123!fake
+
+# Kubernetes Configuration (for real deployment)
+KUBE_HOST=https://chernous_fp_devops.eks-cluster.local
+KUBE_CA=FAKE-CA-CERT
+KUBE_TOKEN=FAKE_KUBE_TOKEN
+
+# Jenkins Configuration
+JENKINS_ADMIN_PASSWORD=admin
+
+# Argo CD Configuration
+ARGOCD_ADMIN_PASSWORD=admin123
+
+# S3 Backend Configuration (for real deployment)
+S3_BUCKET_NAME=chernous_fp_devops-terraform-states
+DYNAMODB_TABLE_NAME=chernous_fp_devops-terraform-locks
