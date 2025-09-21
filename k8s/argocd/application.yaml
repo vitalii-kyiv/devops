@@ -1,14 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: chernous-fp-django
+  name: django-app
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://github.com/example/chernous_fp_devops.git
-    targetRevision: main
+    repoURL: https://github.com/vitalii-kyiv/devops.git
+    targetRevision: final_project
     path: charts/django-app
+    helm:
+      parameters:
+        - name: image.repository
+          value: ""
+        - name: image.tag
+          value: "latest"
   destination:
     server: https://kubernetes.default.svc
     namespace: default
@@ -16,3 +22,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

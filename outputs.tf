@@ -12,15 +12,15 @@ output "overview" {
   value = {
     project_prefix = var.project_prefix
     region         = var.aws_region
-    vpc_id         = try(module.vpc.vpc_id, null)
-    ecr_repo_name  = "${var.project_prefix}-ecr"
-    eks_cluster    = "${var.project_prefix}-eks"
+    vpc_id         = module.vpc.vpc_id
+    ecr_repo_name  = module.ecr.repository_name
+    eks_cluster    = module.eks.cluster_name
     jenkins_ns     = "jenkins"
     argocd_ns      = "argocd"
     monitoring_ns  = "monitoring"
-    iam_role       = module.iam.eks_role_name
+    iam_role       = module.iam.eks_cluster_role_name
   }
-  description = "High-level overview of mock deployment identifiers"
+  description = "High-level overview of production deployment"
 }
 
 # Service access information

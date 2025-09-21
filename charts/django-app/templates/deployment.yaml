@@ -2,15 +2,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "django-app.fullname" . }}
+  labels:
+    {{- include "django-app.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "django-app.name" . }}
+      {{- include "django-app.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "django-app.name" . }}
+        {{- include "django-app.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: django
@@ -18,20 +20,28 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+              name: http
+          {{- if .Values.envFrom }}
           envFrom:
-            - configMapRef:
-                name: {{ include "django-app.fullname" . }}-config
+            {{- toYaml .Values.envFrom | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:
             httpGet:
-              path: /
-              port: {{ .Values.service.port }}
-            initialDelaySeconds: 5
+              path: /health/
+              port: http
+            initialDelaySeconds: 30
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /
-              port: {{ .Values.service.port }}
-            initialDelaySeconds: 10
+              path: /health/
+              port: http
+            initialDelaySeconds: 60
             periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
 
 

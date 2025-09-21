@@ -1,0 +1,5 @@
+bucket         = "devops-prod-terraform-states"
+key            = "devops/terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "devops-prod-terraform-locks"
+encrypt        = true

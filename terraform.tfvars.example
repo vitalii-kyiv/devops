@@ -1,0 +1,9 @@
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Project Configuration
+project_prefix = "devops-prod"
+
+# Database Configuration (sensitive - do not commit real values)
+db_username = "dbadmin"
+db_password = "your-secure-password-here"

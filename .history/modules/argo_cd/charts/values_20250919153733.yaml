@@ -1,8 +1,0 @@
-applications:
-  - name: chernous-fp-django
-    repoURL: https://github.com/example/chernous_fp_devops.git
-    targetRevision: main
-    path: charts/django-app
-    namespace: default
-repositories: []
-

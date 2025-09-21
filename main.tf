@@ -18,10 +18,6 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  # Fake credentials for local syntax validation without real connection
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
-  token      = var.aws_session_token
 }
 
 # Example wiring (uncomment and adjust as needed)
@@ -41,17 +37,41 @@ provider "aws" {
 #   password        = var.db_password
 # }
 
-variable "aws_region" { type = string, default = "us-east-1" }
-variable "aws_access_key" { type = string, default = "AKIAFAKECHERNOUS" }
-variable "aws_secret_key" { type = string, default = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" }
-variable "aws_session_token" { type = string, default = "FAKE_SESSION_TOKEN" }
+variable "aws_region" {
+  type        = string
+  description = "AWS region for resources"
+  default     = "us-east-1"
+}
 
-variable "project_prefix" { type = string, default = "chernous_fp_devops" }
+variable "project_prefix" {
+  type        = string
+  description = "Prefix for all resource names"
+  default     = "devops-prod"
+}
 
-variable "db_username" { type = string, default = "dbadmin" }
-variable "db_password" { type = string, sensitive = true, default = "DevOps123!fake" }
+variable "db_username" {
+  type        = string
+  description = "Database username"
+  sensitive   = true
+}
 
-# Example module connections with conditional resource names
+variable "db_password" {
+  type        = string
+  description = "Database password"
+  sensitive   = true
+}
+
+# S3 Backend for Terraform state
+module "s3_backend" {
+  source = "./modules/s3-backend"
+
+  bucket_name           = "${var.project_prefix}-terraform-states"
+  dynamodb_table_name   = "${var.project_prefix}-terraform-locks"
+  tags = {
+    Project = var.project_prefix
+    Env     = "production"
+  }
+}
 
 module "vpc" {
   source = "./modules/vpc"
@@ -61,7 +81,7 @@ module "vpc" {
   azs  = ["us-east-1a", "us-east-1b"]
   tags = {
     Project = var.project_prefix
-    Env     = "dev"
+    Env     = "production"
   }
 }
 
@@ -71,85 +91,8 @@ module "ecr" {
   name = "${var.project_prefix}-ecr"
   tags = {
     Project = var.project_prefix
-    Env     = "dev"
+    Env     = "production"
   }
-}
-
-module "eks" {
-  source = "./modules/eks"
-
-  name             = "${var.project_prefix}-eks"
-  cluster_role_arn = "arn:aws:iam::123456789012:role/${var.project_prefix}-eks-role"
-  subnet_ids       = module.vpc.private_subnet_ids
-}
-
-module "rds" {
-  source = "./modules/rds"
-
-  use_aurora     = false
-  engine         = "postgres"
-  engine_version = "14.10"
-  instance_class = "db.t3.medium"
-
-  db_name  = "appdb"
-  username = var.db_username
-  password = var.db_password
-
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnet_ids
-
-  allowed_cidr_blocks = ["10.0.0.0/16"]
-
-  deletion_protection = true
-  skip_final_snapshot = true
-
-  tags = {
-    Project = var.project_prefix
-    Env     = "dev"
-  }
-}
-
-# Kubernetes access (fake data for token)
-locals {
-  kube_host = "https://" ~ lower(var.project_prefix) ~ ".eks-cluster.local" 
-  kube_ca   = base64encode("FAKE-CA-CERT")
-  kube_token = "FAKE_KUBE_TOKEN"
-}
-
-module "jenkins" {
-  source = "./modules/jenkins"
-
-  release_name = "${var.project_prefix}-jenkins"
-  namespace    = "jenkins"
-  chart_version = "4.7.0"
-
-  enabled = false
-  kube_host  = local.kube_host
-  kube_ca    = local.kube_ca
-  kube_token = local.kube_token
-}
-
-module "argo_cd" {
-  source = "./modules/argo_cd"
-
-  release_name = "${var.project_prefix}-argocd"
-  namespace    = "argocd"
-
-  enabled = false
-  kube_host  = local.kube_host
-  kube_ca    = local.kube_ca
-  kube_token = local.kube_token
-}
-
-module "monitoring" {
-  source = "./modules/monitoring"
-
-  enabled   = false
-  namespace = "monitoring"
-
-  kube_host  = local.kube_host
-  kube_ca    = local.kube_ca
-  kube_token = local.kube_token
 }
 
 module "iam" {
@@ -158,9 +101,89 @@ module "iam" {
   project_prefix = var.project_prefix
   tags = {
     Project = var.project_prefix
-    Env     = "dev"
+    Env     = "production"
   }
 }
+
+module "eks" {
+  source = "./modules/eks"
+
+  name             = "${var.project_prefix}-eks"
+  cluster_role_arn = module.iam.eks_cluster_role_arn
+  node_role_arn    = module.iam.eks_node_role_arn
+  subnet_ids       = module.vpc.private_subnet_ids
+}
+
+module "rds" {
+  source = "./modules/rds"
+
+  use_aurora     = true
+  engine         = "aurora-postgresql"
+  engine_version = "15.4"
+  instance_class = "db.r6g.large"
+
+  db_name  = "appdb"
+  username = var.db_username
+  password = var.db_password
+
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnet_ids
+
+  allowed_security_group_ids = [module.eks.cluster_security_group_id]
+
+  deletion_protection = true
+  skip_final_snapshot = false
+
+  tags = {
+    Project = var.project_prefix
+    Env     = "production"
+  }
+}
+
+# Kubernetes and Helm providers configured via EKS cluster data
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_name
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_name
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
+  }
+}
+
+module "jenkins" {
+  source = "./modules/jenkins"
+
+  release_name = "${var.project_prefix}-jenkins"
+  namespace    = "jenkins"
+  chart_version = "4.7.0"
+}
+
+module "argo_cd" {
+  source = "./modules/argo_cd"
+
+  release_name = "${var.project_prefix}-argocd"
+  namespace    = "argocd"
+}
+
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  namespace = "monitoring"
+}
+
 
 output "info" {
   value = {

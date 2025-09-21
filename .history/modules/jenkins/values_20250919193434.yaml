@@ -1,3 +1,0 @@
-controller:
-  adminUser: admin
-  adminPassword: ${JENKINS_ADMIN_PASSWORD:-admin}

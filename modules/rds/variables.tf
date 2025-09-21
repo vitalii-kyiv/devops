@@ -119,6 +119,12 @@ variable "allowed_cidr_blocks" {
   default     = []
 }
 
+variable "allowed_security_group_ids" {
+  description = "List of Security Group IDs allowed to access DB port"
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   description = "Common tags to apply"
   type        = map(string)
